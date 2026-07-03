@@ -12,6 +12,7 @@ class ArchiveExplorer:
 
     def __init__(self, reader: PakReader):
         self._reader = reader
+
         self._directories: dict[
             PurePosixPath,
             tuple[list[PurePosixPath], list[PurePosixPath]],
@@ -43,17 +44,18 @@ class ArchiveExplorer:
         }
 
     # -------------------------
-    # NEW METHOD (missing before)
+    # FIXED: safe + deduplicated
     # -------------------------
     def all_paths(self) -> list[PurePosixPath]:
-        """Return all file paths in the archive (cached)."""
+        """Return all unique file paths in the archive."""
 
-        all_files: list[PurePosixPath] = []
+        seen: set[PurePosixPath] = set()
 
         for _, (_, files) in self._directories.items():
-            all_files.extend(files)
+            for f in files:
+                seen.add(f)
 
-        return all_files
+        return sorted(seen, key=lambda p: p.as_posix())
 
     def list(
         self,
