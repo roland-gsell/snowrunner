@@ -3,7 +3,7 @@
 """
 SnowRunner Toolkit
 
-Archive exploration tool.
+Archive exploration CLI.
 """
 
 from __future__ import annotations
@@ -15,10 +15,21 @@ from archive_explorer import ArchiveExplorer
 from pak_reader import PakReader
 
 
-def print_statistics(explorer: ArchiveExplorer) -> None:
-    """Print directory statistics."""
+# -----------------------------
+# Command implementations
+# -----------------------------
 
-    statistics = explorer.directory_statistics("[media]/classes")
+def cmd_tree(explorer: ArchiveExplorer, path: str) -> None:
+    print()
+    print("Archive tree")
+    print("============")
+    print()
+
+    explorer.tree(path, depth=2)
+
+
+def cmd_stats(explorer: ArchiveExplorer, path: str) -> None:
+    statistics = explorer.directory_statistics(path)
 
     print()
     print("Directory statistics")
@@ -36,8 +47,34 @@ def print_statistics(explorer: ArchiveExplorer) -> None:
         )
 
 
-def main() -> None:
+def cmd_ls(explorer: ArchiveExplorer, path: str) -> None:
+    directories, files = explorer.list(path)
 
+    print()
+    print(path)
+    print("=" * len(path))
+    print()
+
+    if directories:
+        print("Directories")
+        print("-----------")
+        for d in directories:
+            print(d.name)
+        print()
+
+    if files:
+        print("Files")
+        print("-----")
+        for f in files:
+            print(f.name)
+        print()
+
+
+# -----------------------------
+# CLI entry point
+# -----------------------------
+
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="SnowRunner archive explorer"
     )
@@ -49,26 +86,31 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "--stats",
-        action="store_true",
-        help="Show directory statistics",
+        "command",
+        choices=["tree", "stats", "ls"],
+        help="Command to execute",
+    )
+
+    parser.add_argument(
+        "path",
+        nargs="?",
+        default="[media]",
+        help="Archive path (default: [media])",
     )
 
     args = parser.parse_args()
 
     with PakReader(args.pak) as reader:
-
         explorer = ArchiveExplorer(reader)
 
-        if args.stats:
-            print_statistics(explorer)
-        else:
-            print()
-            print("Archive tree")
-            print("============")
-            print()
+        if args.command == "tree":
+            cmd_tree(explorer, args.path)
 
-            explorer.tree("[media]", depth=2)
+        elif args.command == "stats":
+            cmd_stats(explorer, args.path)
+
+        elif args.command == "ls":
+            cmd_ls(explorer, args.path)
 
 
 if __name__ == "__main__":
