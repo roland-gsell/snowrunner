@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-SnowRunner Database Project
+SnowRunner Toolkit
 
 Archive exploration tool.
 """
@@ -13,6 +13,27 @@ from pathlib import Path
 
 from archive_explorer import ArchiveExplorer
 from pak_reader import PakReader
+
+
+def print_statistics(explorer: ArchiveExplorer) -> None:
+    """Print directory statistics."""
+
+    statistics = explorer.directory_statistics("[media]/classes")
+
+    print()
+    print("Directory statistics")
+    print("====================")
+    print()
+
+    print(f"{'Directory':45} {'XML':>5} {'DIRS':>5}")
+    print("-" * 58)
+
+    for stat in statistics:
+        print(
+            f"{stat.path.as_posix():45} "
+            f"{stat.xml_files:>5} "
+            f"{stat.subdirectories:>5}"
+        )
 
 
 def main() -> None:
@@ -27,18 +48,27 @@ def main() -> None:
         help="Path to a SnowRunner PAK archive",
     )
 
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show directory statistics",
+    )
+
     args = parser.parse_args()
 
     with PakReader(args.pak) as reader:
 
         explorer = ArchiveExplorer(reader)
 
-        print()
-        print("Archive tree")
-        print("============")
-        print()
+        if args.stats:
+            print_statistics(explorer)
+        else:
+            print()
+            print("Archive tree")
+            print("============")
+            print()
 
-        explorer.tree("[media]", depth=2)
+            explorer.tree("[media]", depth=2)
 
 
 if __name__ == "__main__":

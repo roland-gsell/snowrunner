@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+
+"""
+SnowRunner Toolkit
+
+Shared data models.
+"""
+
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import PurePosixPath
 
