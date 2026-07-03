@@ -8,6 +8,7 @@ Archive explorer for SnowRunner PAK files.
 
 from __future__ import annotations
 
+from collections import defaultdict
 from pathlib import PurePosixPath
 
 from models import DirectoryStatistics
@@ -20,6 +21,49 @@ class ArchiveExplorer:
     def __init__(self, reader: PakReader):
         self._reader = reader
 
+        self._directories: dict[
+            PurePosixPath,
+            tuple[list[PurePosixPath], list[PurePosixPath]],
+        ] = {}
+
+        self._build_index()
+
+    def _build_index(self) -> None:
+        """Build an in-memory directory index."""
+
+        directory_map: dict[
+            PurePosixPath,
+            dict[str, set | list],
+        ] = defaultdict(
+            lambda: {
+                "directories": set(),
+                "files": [],
+            }
+        )
+
+        for path in self._reader.list_files():
+
+            parent = path.parent
+
+            directory_map[parent]["files"].append(path)
+
+            current = parent
+
+            while current != current.parent:
+
+                directory_map[current.parent]["directories"].add(current)
+
+                current = current.parent
+
+        self._directories = {}
+
+        for directory, content in directory_map.items():
+
+            self._directories[directory] = (
+                sorted(content["directories"]),
+                sorted(content["files"]),
+            )
+
     def list(
         self,
         directory: str | PurePosixPath,
@@ -30,23 +74,7 @@ class ArchiveExplorer:
 
         directory = PurePosixPath(directory)
 
-        directories: set[PurePosixPath] = set()
-        files: list[PurePosixPath] = []
-
-        for path in self._reader.list_files():
-
-            try:
-                relative = path.relative_to(directory)
-            except ValueError:
-                continue
-
-            if len(relative.parts) == 1:
-                files.append(path)
-
-            elif len(relative.parts) > 1:
-                directories.add(directory / relative.parts[0])
-
-        return sorted(directories), sorted(files)
+        return self._directories.get(directory, ([], []))
 
     def directory_statistics(
         self,
@@ -82,7 +110,11 @@ class ArchiveExplorer:
 
         return sorted(statistics, key=lambda stat: stat.path.as_posix())
 
-    def tree(self, directory: str | PurePosixPath, depth: int = 2) -> None:
+    def tree(
+        self,
+        directory: str | PurePosixPath,
+        depth: int = 2,
+    ) -> None:
         """Print a directory tree."""
 
         directory = PurePosixPath(directory)
