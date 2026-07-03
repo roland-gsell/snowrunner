@@ -70,6 +70,28 @@ def cmd_ls(explorer: ArchiveExplorer, path: str) -> None:
         print()
 
 
+def cmd_find(explorer: ArchiveExplorer, query: str) -> None:
+    query_lower = query.lower()
+
+    matches = []
+
+    for path in explorer.all_paths():
+        if query_lower in path.as_posix().lower():
+            matches.append(path)
+
+    print()
+    print(f"Search results for: {query}")
+    print("=" * (22 + len(query)))
+    print()
+
+    if not matches:
+        print("No matches found.")
+        return
+
+    for match in matches:
+        print(match.as_posix())
+
+
 # -----------------------------
 # CLI entry point
 # -----------------------------
@@ -87,7 +109,7 @@ def main() -> None:
 
     parser.add_argument(
         "command",
-        choices=["tree", "stats", "ls"],
+        choices=["tree", "stats", "ls", "find"],
         help="Command to execute",
     )
 
@@ -95,7 +117,7 @@ def main() -> None:
         "path",
         nargs="?",
         default="[media]",
-        help="Archive path (default: [media])",
+        help="Archive path (for tree/stats/ls)",
     )
 
     args = parser.parse_args()
@@ -111,6 +133,9 @@ def main() -> None:
 
         elif args.command == "ls":
             cmd_ls(explorer, args.path)
+
+        elif args.command == "find":
+            cmd_find(explorer, args.path)
 
 
 if __name__ == "__main__":

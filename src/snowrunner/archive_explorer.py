@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-
-"""
-SnowRunner Toolkit
-
-Archive explorer for SnowRunner PAK files.
-"""
-
 from __future__ import annotations
 
 from collections import defaultdict
@@ -20,7 +12,6 @@ class ArchiveExplorer:
 
     def __init__(self, reader: PakReader):
         self._reader = reader
-
         self._directories: dict[
             PurePosixPath,
             tuple[list[PurePosixPath], list[PurePosixPath]],
@@ -29,78 +20,66 @@ class ArchiveExplorer:
         self._build_index()
 
     def _build_index(self) -> None:
-        """Build an in-memory directory index."""
-
         directory_map: dict[
             PurePosixPath,
             dict[str, set | list],
-        ] = defaultdict(
-            lambda: {
-                "directories": set(),
-                "files": [],
-            }
-        )
+        ] = defaultdict(lambda: {"directories": set(), "files": []})
 
         for path in self._reader.list_files():
-
             parent = path.parent
-
             directory_map[parent]["files"].append(path)
 
             current = parent
-
             while current != current.parent:
-
                 directory_map[current.parent]["directories"].add(current)
-
                 current = current.parent
 
-        self._directories = {}
-
-        for directory, content in directory_map.items():
-
-            self._directories[directory] = (
+        self._directories = {
+            directory: (
                 sorted(content["directories"]),
                 sorted(content["files"]),
             )
+            for directory, content in directory_map.items()
+        }
+
+    # -------------------------
+    # NEW METHOD (missing before)
+    # -------------------------
+    def all_paths(self) -> list[PurePosixPath]:
+        """Return all file paths in the archive (cached)."""
+
+        all_files: list[PurePosixPath] = []
+
+        for _, (_, files) in self._directories.items():
+            all_files.extend(files)
+
+        return all_files
 
     def list(
         self,
         directory: str | PurePosixPath,
     ) -> tuple[list[PurePosixPath], list[PurePosixPath]]:
-        """
-        Return the immediate subdirectories and files of a directory.
-        """
-
         directory = PurePosixPath(directory)
-
         return self._directories.get(directory, ([], []))
 
     def directory_statistics(
         self,
         directory: str | PurePosixPath,
     ) -> list[DirectoryStatistics]:
-        """
-        Return statistics for the immediate child directories.
-        """
-
         directory = PurePosixPath(directory)
 
         directories, _ = self.list(directory)
 
-        statistics: list[DirectoryStatistics] = []
+        stats: list[DirectoryStatistics] = []
 
         for subdir in directories:
-
             child_dirs, child_files = self.list(subdir)
 
             xml_count = sum(
-                1
-                for file in child_files
-                if file.suffix.lower() == ".xml"
+                1 for f in child_files if f.suffix.lower() == ".xml"
             )
 
-            statistics.append(
+            stats.append(
                 DirectoryStatistics(
                     path=subdir,
                     xml_files=xml_count,
@@ -108,17 +87,10 @@ class ArchiveExplorer:
                 )
             )
 
-        return sorted(statistics, key=lambda stat: stat.path.as_posix())
+        return sorted(stats, key=lambda s: s.path.as_posix())
 
-    def tree(
-        self,
-        directory: str | PurePosixPath,
-        depth: int = 2,
-    ) -> None:
-        """Print a directory tree."""
-
+    def tree(self, directory: str | PurePosixPath, depth: int = 2) -> None:
         directory = PurePosixPath(directory)
-
         self._print(directory, depth, 0)
 
     def _print(
@@ -129,7 +101,6 @@ class ArchiveExplorer:
     ) -> None:
 
         indent = "    " * level
-
         print(f"{indent}{directory.name or directory}")
 
         if depth == 0:
