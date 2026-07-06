@@ -43,4 +43,4 @@ class PakReader:
         archive_name = self._archive_map[path]
 
         with self._zip.open(archive_name) as fp:
-            return fp.read().decode("utf-8", errors="replace")
+            return fp.read().decode("utf-8", errors="replace").replace("\r\n", "\n")
