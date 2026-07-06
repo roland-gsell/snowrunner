@@ -43,3 +43,57 @@ pip install --upgrade pip
 
 pip install ruff pytest mypy
 ```
+
+## Features
+
+Current capabilities:
+
+* Explore the directory structure of SnowRunner `.pak` archives
+* Browse archive directories
+* Display directory statistics
+* Search for files by name
+* View the contents of text and XML files directly from the archive
+* Fast archive indexing with in-memory path lookup
+
+Planned features:
+
+* XML structure inspection
+* Truck dependency extraction
+* Truck database export (CSV / Excel)
+* Automatic discovery of engines, gearboxes, suspensions and addons
+* DLC and season comparison
+
+## Usage
+
+The main archive can be explored directly without extracting it first.
+
+### Show the archive tree
+
+```bash
+python3 src/snowrunner/explore.py initial.pak tree
+```
+
+### List the contents of a directory
+
+```bash
+python3 src/snowrunner/explore.py initial.pak ls [media]/classes/trucks
+```
+
+### Display directory statistics
+
+```bash
+python3 src/snowrunner/explore.py initial.pak stats [media]/classes
+```
+
+### Search for files
+
+```bash
+python3 src/snowrunner/explore.py initial.pak find azov
+```
+
+### Display a file
+
+```bash
+python3 src/snowrunner/explore.py initial.pak cat [media]/classes/trucks/azov_5319.xml
+```
+
