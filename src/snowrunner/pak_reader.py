@@ -5,11 +5,7 @@ from pathlib import Path, PurePosixPath
 
 
 class PakReader:
-    """
-    Minimal SnowRunner PAK archive reader.
-
-    Wraps a zipfile and exposes normalized POSIX paths.
-    """
+    """Minimal SnowRunner PAK archive reader."""
 
     def __init__(self, path: Path):
         self._path = path
@@ -20,14 +16,12 @@ class PakReader:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
-        if self._zip:
+        if self._zip is not None:
             self._zip.close()
 
-    # -----------------------------
-    # Existing API
-    # -----------------------------
-
     def list_files(self) -> list[PurePosixPath]:
+        """Return all files inside the archive."""
+
         assert self._zip is not None
 
         return [
@@ -36,19 +30,20 @@ class PakReader:
             if not name.endswith("/")
         ]
 
-    # -----------------------------
-    # NEW: file content access
-    # -----------------------------
+    def read_text(self, path: PurePosixPath) -> str:
+        """Read a text file from the archive."""
 
-    def read_file(self, path: PurePosixPath | str) -> str:
-        """
-        Read a file from the archive as text.
-
-        Assumes XML/text content (UTF-8 safe fallback).
-        """
         assert self._zip is not None
 
-        path_str = str(path)
+        archive_name = str(path).replace("/", "\\")
 
-        with self._zip.open(path_str) as f:
-            return f.read().decode("utf-8", errors="replace")
+        with self._zip.open(archive_name) as fp:
+            return fp.read().decode("utf-8", errors="replace")
+
+#    def read_text(self, path: PurePosixPath) -> str:
+#        """Read a text file from the archive."""
+#
+#        assert self._zip is not None
+#
+#        with self._zip.open(str(path)) as fp:
+#            return fp.read().decode("utf-8", errors="replace")

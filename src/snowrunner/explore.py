@@ -1,25 +1,15 @@
 #!/usr/bin/env python3
 
-"""
-SnowRunner Toolkit
-
-Archive exploration CLI.
-"""
-
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from archive_explorer import ArchiveExplorer
 from pak_reader import PakReader
 
 
-# -----------------------------
-# Command implementations
-# -----------------------------
-
-def cmd_tree(explorer: ArchiveExplorer, path: str) -> None:
+def cmd_tree(explorer: ArchiveExplorer, path: PurePosixPath) -> None:
     print()
     print("Archive tree")
     print("============")
@@ -28,7 +18,7 @@ def cmd_tree(explorer: ArchiveExplorer, path: str) -> None:
     explorer.tree(path, depth=2)
 
 
-def cmd_stats(explorer: ArchiveExplorer, path: str) -> None:
+def cmd_stats(explorer: ArchiveExplorer, path: PurePosixPath) -> None:
     statistics = explorer.directory_statistics(path)
 
     print()
@@ -47,41 +37,41 @@ def cmd_stats(explorer: ArchiveExplorer, path: str) -> None:
         )
 
 
-def cmd_ls(explorer: ArchiveExplorer, path: str) -> None:
+def cmd_ls(explorer: ArchiveExplorer, path: PurePosixPath) -> None:
     directories, files = explorer.list(path)
 
     print()
-    print(path)
-    print("=" * len(path))
+    print(path.as_posix())
+    print("=" * len(path.as_posix()))
     print()
 
     if directories:
         print("Directories")
         print("-----------")
-        for d in directories:
-            print(d.name)
+        for directory in directories:
+            print(directory.name)
         print()
 
     if files:
         print("Files")
         print("-----")
-        for f in files:
-            print(f.name)
+        for file in files:
+            print(file.name)
         print()
 
 
 def cmd_find(explorer: ArchiveExplorer, query: str) -> None:
-    query_lower = query.lower()
+    query = query.lower()
 
-    matches = []
-
-    for path in explorer.all_paths():
-        if query_lower in path.as_posix().lower():
-            matches.append(path)
+    matches = [
+        path
+        for path in explorer.all_paths()
+        if query in path.as_posix().lower()
+    ]
 
     print()
-    print(f"Search results for: {query}")
-    print("=" * (22 + len(query)))
+    print(f"Search results for '{query}'")
+    print("=" * (21 + len(query)))
     print()
 
     if not matches:
@@ -92,9 +82,9 @@ def cmd_find(explorer: ArchiveExplorer, query: str) -> None:
         print(match.as_posix())
 
 
-# -----------------------------
-# CLI entry point
-# -----------------------------
+def cmd_cat(reader: PakReader, path: PurePosixPath) -> None:
+    print(reader.read_text(path))
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -104,20 +94,25 @@ def main() -> None:
     parser.add_argument(
         "pak",
         type=Path,
-        help="Path to a SnowRunner PAK archive",
+        help="SnowRunner .pak archive",
     )
 
     parser.add_argument(
         "command",
-        choices=["tree", "stats", "ls", "find"],
-        help="Command to execute",
+        choices=[
+            "tree",
+            "stats",
+            "ls",
+            "find",
+            "cat",
+        ],
     )
 
     parser.add_argument(
-        "path",
+        "argument",
         nargs="?",
         default="[media]",
-        help="Archive path (for tree/stats/ls)",
+        help="Archive path or search query",
     )
 
     args = parser.parse_args()
@@ -126,16 +121,19 @@ def main() -> None:
         explorer = ArchiveExplorer(reader)
 
         if args.command == "tree":
-            cmd_tree(explorer, args.path)
+            cmd_tree(explorer, PurePosixPath(args.argument))
 
         elif args.command == "stats":
-            cmd_stats(explorer, args.path)
+            cmd_stats(explorer, PurePosixPath(args.argument))
 
         elif args.command == "ls":
-            cmd_ls(explorer, args.path)
+            cmd_ls(explorer, PurePosixPath(args.argument))
 
         elif args.command == "find":
-            cmd_find(explorer, args.path)
+            cmd_find(explorer, args.argument)
+
+        elif args.command == "cat":
+            cmd_cat(reader, PurePosixPath(args.argument))
 
 
 if __name__ == "__main__":
