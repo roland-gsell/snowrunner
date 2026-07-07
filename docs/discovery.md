@@ -32,3 +32,17 @@ We implemented a full in-memory directory index.
 - Engines / gearboxes / winches are flat catalogs
 
 - `models/` contains ~1100 XML files and is likely non-gameplay data
+
+## Observation 002 - Unbound namespace prefixes
+
+Some SnowRunner XML files contain namespace-prefixed elements such as
+
+    <region:default>
+
+without declaring the corresponding XML namespace.
+
+Standard XML parsers reject these documents with
+
+    ParseError: unbound prefix
+
+The parser must normalize these tags before parsing.
