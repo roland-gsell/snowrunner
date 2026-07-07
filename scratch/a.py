@@ -17,4 +17,6 @@ document = XmlParser.parse(
 
 tree = XmlInspector.inspect(document)
 
-print(tree)
+from snowrunner.xml_renderer import XmlTreeRenderer
+
+print(XmlTreeRenderer.render(tree))
