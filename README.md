@@ -102,3 +102,10 @@ Display a truck XML:
 python3 src/snowrunner/explore.py initial.pak cat \
     [media]/classes/trucks/azov_5319.xml
 ```
+
+Get a truck summary of important facts:
+
+```bash
+python3 src/snowrunner/explore.py initial.pak summary \
+    [media]/classes/trucks/ford_clt9000.xml
+```
