@@ -27,22 +27,41 @@ Do **not** commit or redistribute extracted game assets (such as `.pak` files, X
 
 SnowRunner and all associated game assets are the intellectual property of Saber Interactive and Focus Entertainment.
 
-
-## Setup
+# Installation
 
 Clone the repository:
 
 ```bash
 git clone https://github.com/roland-gsell/snowrunner.git
 cd snowrunner
+```
 
+Create a virtual environment:
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
-
-pip install --upgrade pip
-
-pip install ruff pytest mypy
 ```
+
+Install the project in editable mode:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Install the development tools:
+
+```bash
+pip install ruff pytest
+```
+
+# Verify the installation
+
+```bash
+ruff check .
+pytest
+```
+
 
 ## Features
 
@@ -63,37 +82,23 @@ Planned features:
 * Automatic discovery of engines, gearboxes, suspensions and addons
 * DLC and season comparison
 
-## Usage
+# Quick Start
 
-The main archive can be explored directly without extracting it first.
-
-### Show the archive tree
+Explore the archive:
 
 ```bash
 python3 src/snowrunner/explore.py initial.pak tree
 ```
 
-### List the contents of a directory
-
-```bash
-python3 src/snowrunner/explore.py initial.pak ls [media]/classes/trucks
-```
-
-### Display directory statistics
-
-```bash
-python3 src/snowrunner/explore.py initial.pak stats [media]/classes
-```
-
-### Search for files
+Search for trucks:
 
 ```bash
 python3 src/snowrunner/explore.py initial.pak find azov
 ```
 
-### Display a file
+Display a truck XML:
 
 ```bash
-python3 src/snowrunner/explore.py initial.pak cat [media]/classes/trucks/azov_5319.xml
+python3 src/snowrunner/explore.py initial.pak cat \
+    [media]/classes/trucks/azov_5319.xml
 ```
-
