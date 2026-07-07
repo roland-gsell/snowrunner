@@ -10,6 +10,17 @@ from pak_reader import PakReader
 from snowrunner.xml_inspector import XmlInspector
 from snowrunner.xml_parser import XmlParser
 from snowrunner.xml_renderer import XmlTreeRenderer
+from snowrunner.truck_summary import render as render_truck_summary
+
+
+def cmd_summary(reader: PakReader, path: PurePosixPath) -> None:
+    """Render a summary of a truck XML."""
+
+    xml_text = reader.read_text(path)
+
+    document = XmlParser.parse(path, xml_text)
+
+    print(render_truck_summary(document))
 
 
 def cmd_xml(reader: PakReader, path: PurePosixPath) -> None:
@@ -121,6 +132,7 @@ def main() -> None:
             "find",
             "cat",
             "xml",
+            "summary",
         ],
     )
 
@@ -154,6 +166,9 @@ def main() -> None:
 
         elif args.command == "xml":
             cmd_xml(reader, PurePosixPath(args.argument))
+
+        elif args.command == "summary":
+            cmd_summary(reader, PurePosixPath(args.argument))
 
 
 if __name__ == "__main__":
