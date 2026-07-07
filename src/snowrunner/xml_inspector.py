@@ -33,9 +33,8 @@ class XmlInspector:
 
         children: list[XmlNode] = []
 
-        for tag in sorted(grouped_children):
-            elements = grouped_children[tag]
 
+        for tag, elements in grouped_children.items():
             children.append(
                 cls._inspect_element(
                     elements[0],
