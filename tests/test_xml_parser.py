@@ -3,10 +3,15 @@ from pathlib import PurePosixPath
 from snowrunner.xml_parser import XmlParser
 
 
-def test_parse_multiple_top_level_elements() -> None:
+def test_parse_unbound_namespace_prefix() -> None:
     text = """
-<_templates Include="trucks"/>
-<Truck Name="test_truck"/>
+<Truck>
+    <Dashboard>
+        <region:default>
+            <Gauge />
+        </region:default>
+    </Dashboard>
+</Truck>
 """
 
     document = XmlParser.parse(
@@ -14,8 +19,11 @@ def test_parse_multiple_top_level_elements() -> None:
         text,
     )
 
-    assert document.root.tag == "Document"
+    dashboard = document.root.find("./Truck/Dashboard")
+    assert dashboard is not None
 
-    children = [child.tag for child in document.root]
+    region = dashboard.find("region_default")
+    assert region is not None
 
-    assert children == ["_templates", "Truck"]
+    gauge = region.find("Gauge")
+    assert gauge is not None
