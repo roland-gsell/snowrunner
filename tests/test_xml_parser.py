@@ -1,29 +1,21 @@
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 
-from snowrunner.pak_reader import PakReader
 from snowrunner.xml_parser import XmlParser
 
 
-def main() -> None:
-    pak_path = Path("initial.pak")
-
-    with PakReader(pak_path) as reader:
-        xml_text = reader.read_text(
-            PurePosixPath("[media]/classes/trucks/azov_5319.xml")
-        )
+def test_parse_multiple_top_level_elements() -> None:
+    text = """
+<_templates Include="trucks"/>
+<Truck Name="test_truck"/>
+"""
 
     document = XmlParser.parse(
-        PurePosixPath("[media]/classes/trucks/azov_5319.xml"),
-        xml_text,
+        PurePosixPath("test.xml"),
+        text,
     )
 
-    print(f"Root: {document.root.tag}")
-    print()
+    assert document.root.tag == "Document"
 
-    print("Top-level elements:")
-    for child in document.root:
-        print(f"  {child.tag}")
+    children = [child.tag for child in document.root]
 
-
-if __name__ == "__main__":
-    main()
+    assert children == ["_templates", "Truck"]
