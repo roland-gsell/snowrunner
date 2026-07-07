@@ -7,6 +7,21 @@ from pathlib import Path, PurePosixPath
 
 from archive_explorer import ArchiveExplorer
 from pak_reader import PakReader
+from snowrunner.xml_inspector import XmlInspector
+from snowrunner.xml_parser import XmlParser
+from snowrunner.xml_renderer import XmlTreeRenderer
+
+
+def cmd_xml(reader: PakReader, path: PurePosixPath) -> None:
+    """Inspect and render an XML file."""
+
+    xml_text = reader.read_text(path)
+
+    document = XmlParser.parse(path, xml_text)
+
+    tree = XmlInspector.inspect(document)
+
+    print(XmlTreeRenderer.render(tree))
 
 
 def cmd_tree(explorer: ArchiveExplorer, path: PurePosixPath) -> None:
@@ -105,6 +120,7 @@ def main() -> None:
             "ls",
             "find",
             "cat",
+            "xml",
         ],
     )
 
@@ -116,6 +132,7 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+
 
     with PakReader(args.pak) as reader:
         explorer = ArchiveExplorer(reader)
@@ -134,6 +151,9 @@ def main() -> None:
 
         elif args.command == "cat":
             cmd_cat(reader, PurePosixPath(args.argument))
+
+        elif args.command == "xml":
+            cmd_xml(reader, PurePosixPath(args.argument))
 
 
 if __name__ == "__main__":
